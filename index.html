@@ -2856,6 +2856,18 @@
         if(document.getElementById('p-count-rtt'))    document.getElementById('p-count-rtt').textContent    = cfg.rtt-placedRtt;
         if(document.getElementById('p-count-reserve'))document.getElementById('p-count-reserve').textContent= (cfg.jrsup||0) - countByType('reserve');
         updateMiniSoldes();
+        applyJrsupVisibility();
+      }
+
+      function applyJrsupVisibility() {
+        const show = (get_cfg().jrsup || 0) > 0;
+        const disp = show ? '' : 'none';
+        document.querySelectorAll('.tool-btn[data-tool="reserve"], #mini-btn-reserve, .mob-tool[data-tool="reserve"]')
+          .forEach(el => { el.style.display = disp; });
+        const cnt = document.getElementById('count-reserve');
+        if (cnt && cnt.closest('.counter')) cnt.closest('.counter').style.display = disp;
+        // Si l'outil JRSUP était sélectionné et qu'il disparaît, revenir à CP
+        if (!show && currentTool === 'reserve') selectTool('cp2526');
       }
 
       // Ré-applique la transparence des mois si une image de fond est active
