@@ -2006,16 +2006,17 @@
         }
       }
 
+      const _isOut = v => v && v.active && (v.direction === 'out' || v.direction === 'both');
+
       async function _publishSharedData() {
         try {
           const snap = await get(ref(db, `${FB_V}_shared/${_authUid}`));
           const data = snap.val();
-          // Publier seulement si au moins un accès outbound actif existe
-          const hasActiveOut = data && Object.values(data).some(v => v.active && v.direction === 'out');
+          const hasActiveOut = data && Object.values(data).some(_isOut);
           if (hasActiveOut) {
             await set(ref(db, `${FB_V}_pub/${_authUid}`), { users });
           }
-        } catch(e) {}
+        } catch(e) { console.warn('publish failed', e); }
       }
 
       // ── Préférences locales (utilisateur sélectionné, année, comparaison) ──
@@ -4480,9 +4481,10 @@
         await set(codeRef, { ...info, used: true, usedBy: _authUid, usedAt: Date.now() });
         // Partage bidirectionnel
         // Pour l'owner : mon entrée dans son nœud = outbound (il me partage vers moi)
-        await set(ref(db, `${FB_V}_shared/${info.ownerUid}/${_authUid}`), { name: myName, active: true, direction: 'out' });
+        await set(ref(db, `${FB_V}_shared/${info.ownerUid}/${_authUid}`), { name: myName, active: true, direction: 'both' });
         // Pour moi : son entrée dans mon nœud = inbound (je reçois son planning)
-        await set(ref(db, `${FB_V}_shared/${_authUid}/${info.ownerUid}`), { name: info.ownerName, active: true, direction: 'in' });
+        await set(ref(db, `${FB_V}_shared/${_authUid}/${info.ownerUid}`), { name: info.ownerName, active: true, direction: 'both' });
+        await _publishSharedData();
         await _loadSharedForCompare();
       }
 
@@ -4533,7 +4535,7 @@
           // On lit uniquement notre propre nœud pour voir s'il reste des outbound actifs
           const snap = await get(ref(db, `${FB_V}_shared/${_authUid}`));
           const data = snap.val() || {};
-          const stillActive = Object.values(data).some(v => v.active && v.direction === 'out');
+          const stillActive = Object.values(data).some(_isOut);
           if (!stillActive) {
             await set(ref(db, `${FB_V}_pub/${_authUid}`), null);
           }
@@ -4662,10 +4664,10 @@
           for (const [uid, info] of Object.entries(myConns)) {
             if (!info || info.name === undefined) continue;
             if (!colleagues[uid]) colleagues[uid] = { uid, name: info.name, outActive: null, inActive: null };
-            if (info.direction === 'out') {
+            if (info.direction === 'out' || info.direction === 'both') {
               colleagues[uid].outActive = info.active === true;
-            } else {
-              // 'in' ou rétrocompat
+            }
+            if (info.direction !== 'out') {
               colleagues[uid].inActive = info.active === true;
             }
           }
