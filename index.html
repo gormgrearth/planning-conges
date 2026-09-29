@@ -2348,7 +2348,7 @@
         const rtt = cfg.rtt - countType('jrsup');
         const jrsup = (cfg.jrsup || 0) - countType('reserve');
         const hasJrsup = (cfg.jrsup || 0) > 0;
-        return { cp, cp2, rtt, jrsup, hasJrsup, color: avatarColor(u), initials: userInitials(u.name), name: u.name };
+        return { cp, cp2, rtt, jrsup, hasJrsup, showCp: (cfg.cp2526 || 0) > 0, showCp2: (cfg.cp2425 || 0) > 0, showRtt: (cfg.rtt || 0) > 0, color: avatarColor(u), initials: userInitials(u.name), name: u.name };
       }
 
       // ── Met à jour tout : header (barre utilisateurs + soldes) + mini sidebar ─
@@ -2381,9 +2381,9 @@
           if (av) { av.textContent = s.initials; av.style.background = s.color; }
           if (nm) nm.textContent = s.name;
           if (chips) chips.innerHTML =
-            _soldeChip('CP', s.cp, 'var(--cp-curr)') +
-            (s.cp2 > 0 ? _soldeChip('CP préc.', s.cp2, 'var(--cp-prev)') : '') +
-            _soldeChip('RTT', s.rtt, 'var(--rtt)') +
+            (s.showCp  ? _soldeChip('CP', s.cp, 'var(--cp-curr)') : '') +
+            (s.showCp2 ? _soldeChip('CP préc.', s.cp2, 'var(--cp-prev)') : '') +
+            (s.showRtt ? _soldeChip('RTT', s.rtt, 'var(--rtt)') : '') +
             (s.hasJrsup ? _soldeChip('JRSUP', s.jrsup, 'var(--reserve)') : '');
         }
 
@@ -2856,7 +2856,45 @@
         if(document.getElementById('p-count-rtt'))    document.getElementById('p-count-rtt').textContent    = cfg.rtt-placedRtt;
         if(document.getElementById('p-count-reserve'))document.getElementById('p-count-reserve').textContent= (cfg.jrsup||0) - countByType('reserve');
         updateMiniSoldes();
-        applyJrsupVisibility();
+        applyConfigVisibility();
+      }
+
+      function applyConfigVisibility() {
+        const c = get_cfg();
+        const okCp   = (c.cp2526 || 0) > 0;
+        const okCp2  = (c.cp2425 || 0) > 0;
+        const okRtt  = (c.rtt    || 0) > 0;
+        const okJr   = (c.jrsup  || 0) > 0;
+
+        const tools = {
+          'cp2526': okCp, 'cp2526-half': okCp,
+          'cp2425': okCp2, 'cp2425-half': okCp2,
+          'jrsup': okRtt, 'reserve': okJr
+        };
+        Object.entries(tools).forEach(([tool, show]) => {
+          document.querySelectorAll(
+            `.tool-btn[data-tool="${tool}"], .mini-tool-btn[data-tool="${tool}"], .mob-tool[data-tool="${tool}"]`
+          ).forEach(el => { el.style.display = show ? '' : 'none'; });
+        });
+
+        const counters = {
+          'count-cp2526': okCp, 'count-cp2526-imp': okCp, 'count-cp2526-used': okCp,
+          'count-cp2425': okCp2, 'count-cp2425-used': okCp2,
+          'count-rtt': okRtt, 'count-rtt-imp': okRtt,
+          'count-reserve': okJr,
+          'mob-count-cp2526': okCp, 'mob-count-cp2425': okCp2, 'mob-count-rtt': okRtt
+        };
+        Object.entries(counters).forEach(([id, show]) => {
+          const el = document.getElementById(id);
+          const box = el && el.closest('.counter');
+          if (box) box.style.display = show ? '' : 'none';
+        });
+
+        // Si l'outil actif a disparu, choisir le premier outil visible
+        if (tools[currentTool] === false) {
+          const next = ['cp2526', 'cp2425', 'jrsup', 'reserve'].find(t => tools[t]) || 'eraser';
+          selectTool(next);
+        }
       }
 
       function applyJrsupVisibility() {
