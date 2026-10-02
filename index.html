@@ -1725,6 +1725,7 @@
             <div class="config-item"><span>RTT total</span><input type="number" id="cfg-rtt" value="11" min="0" onchange="updateConfig()"></div>
             <div class="config-item"><span>RTT imposés</span><input type="number" id="cfg-rtt-imp" value="0" min="0" onchange="updateConfig()"></div>
             <div class="config-item"><span>JRSUP total</span><input type="number" id="cfg-jrsup" value="0" min="0" onchange="updateConfig()"></div>
+            <div class="config-item"><span>JRSUP imposés</span><input type="number" id="cfg-jrsup-imp" value="0" min="0" onchange="updateConfig()"></div>
           </div>
         </div>
 
@@ -1779,6 +1780,10 @@
                 <div class="counter">
                   <div class="counter-value" id="count-reserve">0</div>
                   <div class="counter-label">JRSUP restants</div>
+                </div>
+                <div class="counter">
+                  <div class="counter-value" id="count-reserve-imp">0</div>
+                  <div class="counter-label">JRSUP imposés placés</div>
                 </div>
               </div>
             </div>
@@ -2481,7 +2486,11 @@
         const jrsup = (cfg.jrsup || 0) - countType('reserve');
         const hasJrsup = (cfg.jrsup || 0) > 0;
         const ap = countType('activ-partielle'), css = countType('css');
-        return { cp, cp2, rtt, jrsup, hasJrsup, ap, css, cpTot, cp2Tot: cfg.cp2425 || 0, rttTot: cfg.rtt || 0, jrTot: cfg.jrsup || 0, showCp: cpTot > 0, showCp2: (cfg.cp2425 || 0) > 0, showRtt: (cfg.rtt || 0) > 0, color: avatarColor(u), initials: userInitials(u.name), name: u.name };
+        const countImp = (t) => Object.values(cd).filter(v => v.type === t && v.status === 'imposed').length;
+        const impCp = countImp('cp2526') + countImp('cp2526-half') * 0.5, impCpTot = cfg.cp2526imp || 0;
+        const impRtt = countImp('jrsup'), impRttTot = cfg.rttimp || 0;
+        const impJr = countImp('reserve'), impJrTot = cfg.jrsupimp || 0;
+        return { cp, cp2, rtt, jrsup, hasJrsup, ap, css, impCp, impCpTot, impRtt, impRttTot, impJr, impJrTot, cpTot, cp2Tot: cfg.cp2425 || 0, rttTot: cfg.rtt || 0, jrTot: cfg.jrsup || 0, showCp: cpTot > 0, showCp2: (cfg.cp2425 || 0) > 0, showRtt: (cfg.rtt || 0) > 0, color: avatarColor(u), initials: userInitials(u.name), name: u.name };
       }
 
       // ── Met à jour tout : header (barre utilisateurs + soldes) + mini sidebar ─
@@ -2516,9 +2525,12 @@
           if (nm) nm.textContent = s.name;
           if (chips) chips.innerHTML =
             (s.showCp  ? _soldeChip('CP', s.cp, 'var(--cp-curr)', s.cpTot) : '') +
+            (s.showCp && s.impCpTot > 0 ? _soldeChip('CP imp.', s.impCp, 'var(--cp-curr)', s.impCpTot) : '') +
             (s.showCp2 ? _soldeChip('CP préc.', s.cp2, 'var(--cp-prev)', s.cp2Tot) : '') +
             (s.showRtt ? _soldeChip('RTT', s.rtt, 'var(--rtt)', s.rttTot) : '') +
+            (s.showRtt && s.impRttTot > 0 ? _soldeChip('RTT imp.', s.impRtt, 'var(--rtt)', s.impRttTot) : '') +
             (s.hasJrsup ? _soldeChip('JRSUP', s.jrsup, 'var(--reserve)', s.jrTot) : '') +
+            (s.hasJrsup && s.impJrTot > 0 ? _soldeChip('JRSUP imp.', s.impJr, 'var(--reserve)', s.impJrTot) : '') +
             (s.ap  > 0 ? _soldeChip('Act. part.', s.ap, 'var(--activ)') : '') +
             (s.css > 0 ? _soldeChip('S/solde', s.css, 'var(--css-stripe-a)') : '');
         }
@@ -2600,7 +2612,7 @@
       });
 
       function defaultCfg() {
-        return { cp2526: 25, cp2526imp: 0, cp2425: 0, rtt: 11, rttimp: 0, jrsup: 0, anciennete: 0 };
+        return { cp2526: 25, cp2526imp: 0, cp2425: 0, rtt: 11, rttimp: 0, jrsup: 0, jrsupimp: 0, anciennete: 0 };
       }
 
       function updateYearLabels(y) {
@@ -2760,6 +2772,7 @@
         document.getElementById('cfg-cp2425').value     = cfg.cp2425;
         document.getElementById('cfg-rtt').value        = cfg.rtt;
         document.getElementById('cfg-rtt-imp').value    = cfg.rttimp;
+        document.getElementById('cfg-jrsup-imp').value = cfg.jrsupimp || 0;
         document.getElementById('cfg-jrsup').value = cfg.jrsup || 0;
         document.getElementById('cfg-anciennete').value = cfg.anciennete || 0;
 
@@ -2951,6 +2964,7 @@
         cfg.cp2425=parseInt(document.getElementById('cfg-cp2425').value)||0;
         cfg.rtt=parseInt(document.getElementById('cfg-rtt').value)||0;
         cfg.rttimp=parseInt(document.getElementById('cfg-rtt-imp').value)||0;
+        cfg.jrsupimp=parseInt(document.getElementById('cfg-jrsup-imp').value)||0;
         cfg.jrsup=parseInt(document.getElementById('cfg-jrsup').value)||0;
         cfg.anciennete=parseInt(document.getElementById('cfg-anciennete').value)||0;
         updateCounterDisplay();
@@ -2985,6 +2999,7 @@
         setCount('count-cp2425', cfg.cp2425 - total2425Used, cfg.cp2425);
         setCount('count-rtt', cfg.rtt - placedRtt, cfg.rtt);
         setCount('count-rtt-imp', impRtt, cfg.rttimp||0);
+        setCount('count-reserve-imp', countByTypeAndStatus('reserve','imposed'), cfg.jrsupimp||0);
         setCount('count-reserve', (cfg.jrsup||0) - countByType('reserve'), cfg.jrsup||0);
         if(document.getElementById('count-cp2526-used')) document.getElementById('count-cp2526-used').textContent = fmt(total2526Used);
         if(document.getElementById('count-cp2425-used')) document.getElementById('count-cp2425-used').textContent = fmt(total2425Used);
@@ -3008,6 +3023,7 @@
         const okJr   = (c.jrsup  || 0) > 0;
         const okCpImp  = okCp  && (c.cp2526imp || 0) > 0;
         const okRttImp = okRtt && (c.rttimp    || 0) > 0;
+        const okJrImp  = okJr  && (c.jrsupimp  || 0) > 0;
         const nAp  = countByType('activ-partielle');
         const nCss = countByType('css');
         const okAp = nAp > 0, okCss = nCss > 0;
@@ -3027,7 +3043,7 @@
           'count-cp2526': okCp, 'count-cp2526-imp': okCpImp, 'count-cp2526-used': okCp,
           'count-cp2425': okCp2, 'count-cp2425-used': okCp2,
           'count-rtt': okRtt, 'count-rtt-imp': okRttImp,
-          'count-reserve': okJr,
+          'count-reserve': okJr, 'count-reserve-imp': okJrImp,
           'count-ap': okAp, 'count-css': okCss,
           'mob-count-cp2526': okCp, 'mob-count-cp2425': okCp2, 'mob-count-rtt': okRtt,
           'mob-count-ap': okAp, 'mob-count-css': okCss
@@ -3053,7 +3069,7 @@
           'count-cp2526': 'var(--cp-curr)', 'count-cp2526-imp': 'var(--cp-curr)', 'count-cp2526-used': 'var(--cp-curr)',
           'count-cp2425': 'var(--cp-prev)', 'count-cp2425-used': 'var(--cp-prev)',
           'count-rtt': 'var(--rtt)', 'count-rtt-imp': 'var(--rtt)',
-          'count-reserve': 'var(--reserve)',
+          'count-reserve': 'var(--reserve)', 'count-reserve-imp': 'var(--reserve)',
           'count-ap': 'var(--activ)', 'count-css': 'var(--css-stripe-a)'
         };
         Object.entries(colorOf).forEach(([id, col]) => {
@@ -3135,7 +3151,7 @@
         for(const [y,ydRaw] of Object.entries(raw||{})){
           const cfg=ydRaw.cfg||{};
           out[y]={calendarData:ydRaw.calendarData||{},reserves:ydRaw.reserves||[],zone:ydRaw.zone||'B',
-            cfg:{cp2526:cfg.cp2526??0,cp2526imp:cfg.cp2526imp??0,cp2425:cfg.cp2425??0,rtt:cfg.rtt??0,rttimp:cfg.rttimp??0,jrsup:cfg.jrsup??0,anciennete:cfg.anciennete??0}};
+            cfg:{cp2526:cfg.cp2526??0,cp2526imp:cfg.cp2526imp??0,cp2425:cfg.cp2425??0,rtt:cfg.rtt??0,rttimp:cfg.rttimp??0,jrsup:cfg.jrsup??0,jrsupimp:cfg.jrsupimp??0,anciennete:cfg.anciennete??0}};
         }
         return out;
       }
