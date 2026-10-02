@@ -50,8 +50,8 @@
         /* Tints mois CP */
         --tint-curr-bg: rgba(192,57,43,0.07);
         --tint-prev-bg: rgba(123,45,139,0.07);
-        --ferie-bg: #F0EDE8;
-        --ferie-color: var(--text-muted);
+        --ferie-bg: #D8D1C4;
+        --ferie-color: #5E564B;
         --vacances-bg: #FEF9EC;
         --vacances-color: var(--vacances);
         --vacances-border: #F6E49C;
@@ -1382,6 +1382,12 @@
       @media print {
         .day { box-shadow: none !important; text-shadow: none !important; }
       }
+    
+      /* ── Soldes : « / total » et pastilles de jours plus petites ── */
+      .counter-total { font-size: 12px; opacity: 0.6; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+      body.mobile-mode .counter-total { font-size: 10px; }
+      .days { gap: 5px 2px; }
+      .day { width: 86%; justify-self: center; align-self: start; }
     </style>
   </head>
   <body>
@@ -1701,6 +1707,7 @@
           <div class="section-label">Configuration</div>
           <div class="config-section">
             <div class="config-item"><span id="cfg-label-cp2526">CP en cours total</span><input type="number" id="cfg-cp2526" value="25" min="0" onchange="updateConfig()"></div>
+            <div class="config-item"><span title="Jours d'ancienneté ajoutés au total de CP en cours">Ancienneté (jours)</span><input type="number" id="cfg-anciennete" value="0" min="0" onchange="updateConfig()"></div>
             <div class="config-item"><span id="cfg-label-cp2526-imp">CP imposés</span><input type="number" id="cfg-cp2526-imp" value="0" min="0" onchange="updateConfig()"></div>
             <div class="config-item"><span id="cfg-label-cp2425">CP préc. solde</span><input type="number" id="cfg-cp2425" value="0" min="0" onchange="updateConfig()"></div>
             <div class="config-item"><span>RTT total</span><input type="number" id="cfg-rtt" value="11" min="0" onchange="updateConfig()"></div>
@@ -2426,26 +2433,28 @@
         const cd = yd.calendarData || {};
         const cfg = yd.cfg || { cp2526: 25, cp2526imp: 0, cp2425: 0, rtt: 11, rttimp: 0 };
         const countType = (t) => Object.values(cd).filter(v => v.type === t).length;
-        const cp  = cfg.cp2526 - countType('cp2526') - countType('cp2526-half') * 0.5;
+        const cpTot = (cfg.cp2526 || 0) + (cfg.anciennete || 0);
+        const cp  = cpTot - countType('cp2526') - countType('cp2526-half') * 0.5;
         const cp2 = cfg.cp2425 - countType('cp2425') - countType('cp2425-half') * 0.5;
         const rtt = cfg.rtt - countType('jrsup');
         const jrsup = (cfg.jrsup || 0) - countType('reserve');
         const hasJrsup = (cfg.jrsup || 0) > 0;
-        return { cp, cp2, rtt, jrsup, hasJrsup, showCp: (cfg.cp2526 || 0) > 0, showCp2: (cfg.cp2425 || 0) > 0, showRtt: (cfg.rtt || 0) > 0, color: avatarColor(u), initials: userInitials(u.name), name: u.name };
+        return { cp, cp2, rtt, jrsup, hasJrsup, cpTot, cp2Tot: cfg.cp2425 || 0, rttTot: cfg.rtt || 0, jrTot: cfg.jrsup || 0, showCp: cpTot > 0, showCp2: (cfg.cp2425 || 0) > 0, showRtt: (cfg.rtt || 0) > 0, color: avatarColor(u), initials: userInitials(u.name), name: u.name };
       }
 
       // ── Met à jour tout : header (barre utilisateurs + soldes) + mini sidebar ─
       function updateCompareHeaderBadge() { _refreshUserBars(); }
       function updateMiniSoldes()         { _refreshUserBars(); }
 
-      function _soldeChip(label, val, color) {
+      function _soldeChip(label, val, color, total) {
         const fmt = v => Number.isInteger(v) ? String(v) : v.toFixed(1);
+        const tot = (total === undefined) ? '' : `<span style="font-weight:500;opacity:0.65;">/${fmt(total)}</span>`;
         return `<span style="
-          display:inline-flex;align-items:center;gap:3px;
+          display:inline-flex;align-items:center;gap:4px;
           background:var(--surface);border:1px solid var(--border);
           border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;
           color:${color};white-space:nowrap;line-height:1.6;
-        ">${label} <span style="font-weight:700;">${fmt(val)}</span></span>`;
+        "><span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0;"></span>${label} <span style="font-weight:700;">${fmt(val)}</span>${tot}</span>`;
       }
 
       function _refreshUserBars() {
@@ -2464,10 +2473,10 @@
           if (av) { av.textContent = s.initials; av.style.background = s.color; }
           if (nm) nm.textContent = s.name;
           if (chips) chips.innerHTML =
-            (s.showCp  ? _soldeChip('CP', s.cp, 'var(--cp-curr)') : '') +
-            (s.showCp2 ? _soldeChip('CP préc.', s.cp2, 'var(--cp-prev)') : '') +
-            (s.showRtt ? _soldeChip('RTT', s.rtt, 'var(--rtt)') : '') +
-            (s.hasJrsup ? _soldeChip('JRSUP', s.jrsup, 'var(--reserve)') : '');
+            (s.showCp  ? _soldeChip('CP', s.cp, 'var(--cp-curr)', s.cpTot) : '') +
+            (s.showCp2 ? _soldeChip('CP préc.', s.cp2, 'var(--cp-prev)', s.cp2Tot) : '') +
+            (s.showRtt ? _soldeChip('RTT', s.rtt, 'var(--rtt)', s.rttTot) : '') +
+            (s.hasJrsup ? _soldeChip('JRSUP', s.jrsup, 'var(--reserve)', s.jrTot) : '');
         }
 
         _fillHeaderRow('user', sA);
@@ -2518,9 +2527,9 @@
             const mbCp   = document.getElementById('mob-count-cp2526-b');
             const mbCp2  = document.getElementById('mob-count-cp2425-b');
             const mbRtt  = document.getElementById('mob-count-rtt-b');
-            if (mbCp)  mbCp.textContent  = fmt2(sB.cp);
-            if (mbCp2) mbCp2.textContent = fmt2(sB.cp2);
-            if (mbRtt) mbRtt.textContent = fmt2(sB.rtt);
+            if (mbCp)  mbCp.innerHTML  = fmt2(sB.cp) + '<span class="counter-total"> / ' + fmt2(sB.cpTot) + '</span>';
+            if (mbCp2) mbCp2.innerHTML = fmt2(sB.cp2) + '<span class="counter-total"> / ' + fmt2(sB.cp2Tot) + '</span>';
+            if (mbRtt) mbRtt.innerHTML = fmt2(sB.rtt) + '<span class="counter-total"> / ' + fmt2(sB.rttTot) + '</span>';
           } else {
             mobRowB.style.display = 'none';
           }
@@ -2547,7 +2556,7 @@
       });
 
       function defaultCfg() {
-        return { cp2526: 25, cp2526imp: 0, cp2425: 0, rtt: 11, rttimp: 0, jrsup: 0 };
+        return { cp2526: 25, cp2526imp: 0, cp2425: 0, rtt: 11, rttimp: 0, jrsup: 0, anciennete: 0 };
       }
 
       function updateYearLabels(y) {
@@ -2708,6 +2717,7 @@
         document.getElementById('cfg-rtt').value        = cfg.rtt;
         document.getElementById('cfg-rtt-imp').value    = cfg.rttimp;
         document.getElementById('cfg-jrsup').value = cfg.jrsup || 0;
+        document.getElementById('cfg-anciennete').value = cfg.anciennete || 0;
 
         for (let month = 0; month < 12; month++) {
           const monthDiv = document.createElement('div');
@@ -2898,6 +2908,7 @@
         cfg.rtt=parseInt(document.getElementById('cfg-rtt').value)||0;
         cfg.rttimp=parseInt(document.getElementById('cfg-rtt-imp').value)||0;
         cfg.jrsup=parseInt(document.getElementById('cfg-jrsup').value)||0;
+        cfg.anciennete=parseInt(document.getElementById('cfg-anciennete').value)||0;
         updateCounterDisplay();
         saveCurrentUserData();// fire-and-forget ok
       }
@@ -2923,18 +2934,20 @@
 
         const fmt = v => Number.isInteger(v) ? v : v.toFixed(1);
 
-        document.getElementById('count-cp2526').textContent     = fmt(cfg.cp2526 - total2526Used);
+        const cpTotal = (cfg.cp2526 || 0) + (cfg.anciennete || 0);
+        const setCount = (id, rest, tot) => { const el = document.getElementById(id); if (el) el.innerHTML = fmt(rest) + '<span class="counter-total"> / ' + fmt(tot) + '</span>'; };
+        setCount('count-cp2526', cpTotal - total2526Used, cpTotal);
         document.getElementById('count-cp2526-imp').textContent = fmt(imp2526)+' / '+cfg.cp2526imp;
-        document.getElementById('count-cp2425').textContent     = fmt(cfg.cp2425 - total2425Used);
-        document.getElementById('count-rtt').textContent        = cfg.rtt-placedRtt;
+        setCount('count-cp2425', cfg.cp2425 - total2425Used, cfg.cp2425);
+        setCount('count-rtt', cfg.rtt - placedRtt, cfg.rtt);
         document.getElementById('count-rtt-imp').textContent    = impRtt+' / '+cfg.rttimp;
-        document.getElementById('count-reserve').textContent    = (cfg.jrsup||0) - countByType('reserve');
+        setCount('count-reserve', (cfg.jrsup||0) - countByType('reserve'), cfg.jrsup||0);
         if(document.getElementById('count-cp2526-used')) document.getElementById('count-cp2526-used').textContent = fmt(total2526Used);
         if(document.getElementById('count-cp2425-used')) document.getElementById('count-cp2425-used').textContent = fmt(total2425Used);
         if(document.getElementById('count-css')) document.getElementById('count-css').textContent = placedCss;
 
         // Print mirror
-        if(document.getElementById('p-count-cp2526')) document.getElementById('p-count-cp2526').textContent = fmt(cfg.cp2526-total2526Used);
+        if(document.getElementById('p-count-cp2526')) document.getElementById('p-count-cp2526').textContent = fmt(cpTotal-total2526Used)+' / '+cpTotal;
         if(document.getElementById('p-count-cp2425')) document.getElementById('p-count-cp2425').textContent = fmt(cfg.cp2425-total2425Used);
         if(document.getElementById('p-count-rtt'))    document.getElementById('p-count-rtt').textContent    = cfg.rtt-placedRtt;
         if(document.getElementById('p-count-reserve'))document.getElementById('p-count-reserve').textContent= (cfg.jrsup||0) - countByType('reserve');
@@ -2944,7 +2957,7 @@
 
       function applyConfigVisibility() {
         const c = get_cfg();
-        const okCp   = (c.cp2526 || 0) > 0;
+        const okCp   = ((c.cp2526 || 0) + (c.anciennete || 0)) > 0;
         const okCp2  = (c.cp2425 || 0) > 0;
         const okRtt  = (c.rtt    || 0) > 0;
         const okJr   = (c.jrsup  || 0) > 0;
@@ -2971,6 +2984,21 @@
           const el = document.getElementById(id);
           const box = el && el.closest('.counter');
           if (box) box.style.display = show ? '' : 'none';
+        });
+
+        // Couleurs des soldes = couleurs des pastilles d'outils
+        const colorOf = {
+          'count-cp2526': 'var(--cp-curr)', 'count-cp2526-imp': 'var(--cp-curr)',
+          'count-cp2425': 'var(--cp-prev)',
+          'count-rtt': 'var(--rtt)', 'count-rtt-imp': 'var(--rtt)',
+          'count-reserve': 'var(--reserve)'
+        };
+        Object.entries(colorOf).forEach(([id, col]) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.style.color = col;
+          const box = el.closest('.counter');
+          if (box) box.style.borderTop = '2px solid ' + col;
         });
 
         // Si l'outil actif a disparu, choisir le premier outil visible
@@ -3044,7 +3072,7 @@
         for(const [y,ydRaw] of Object.entries(raw||{})){
           const cfg=ydRaw.cfg||{};
           out[y]={calendarData:ydRaw.calendarData||{},reserves:ydRaw.reserves||[],zone:ydRaw.zone||'B',
-            cfg:{cp2526:cfg.cp2526??0,cp2526imp:cfg.cp2526imp??0,cp2425:cfg.cp2425??0,rtt:cfg.rtt??0,rttimp:cfg.rttimp??0,jrsup:cfg.jrsup??0}};
+            cfg:{cp2526:cfg.cp2526??0,cp2526imp:cfg.cp2526imp??0,cp2425:cfg.cp2425??0,rtt:cfg.rtt??0,rttimp:cfg.rttimp??0,jrsup:cfg.jrsup??0,anciennete:cfg.anciennete??0}};
         }
         return out;
       }
@@ -3984,7 +4012,7 @@
         ids.forEach(id => {
           const src = document.getElementById('count-' + id);
           const dst = document.getElementById('mob-count-' + id);
-          if (src && dst) dst.textContent = src.textContent;
+          if (src && dst) dst.innerHTML = src.innerHTML;
         });
         // labels
         const lblMap = {'cp2526':'lbl-count-cp2526','cp2425':'lbl-count-cp2425'};
