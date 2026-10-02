@@ -3781,7 +3781,8 @@
         }
 
         // School holiday rows: one row per selected zone
-        const ZONE_COLORS = { A: '#B45309', B: '#1565C0', C: '#6A1B9A' };
+        // Palette volontairement distincte de celle des congés (rouge, violet, vert, teal, olive)
+        const ZONE_COLORS = { A: '#F2B84B', B: '#5DADE2', C: '#9AA8B8' };
         const schoolRows = selectedZones.map(z => ({
           name: `Vac. Zone ${z}`,
           color: ZONE_COLORS[z] || '#888',
@@ -3819,7 +3820,7 @@
           return `${y}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
         }
 
-        const SCHOOL_BG = '#FEF9EC';
+        const SCHOOL_BG = '#F4F6F8';
         const SCHOOL_COLOR = '#B8860B';
 
         function buildGroup(monthIdxs, groupLabel) {
@@ -3879,8 +3880,8 @@
 
             const isSchool = !!row.isSchool;
             const rowBg = isSchool ? SCHOOL_BG : '#FAFAF8';
-            const labelBg = isSchool ? '#FEF3D0' : '#F8F7F5';
-            const labelBorder = isSchool ? '#F6E49C' : '#C4D4EF';
+            const labelBg = isSchool ? '#EBEEF2' : '#F8F7F5';
+            const labelBorder = isSchool ? '#CBD3DC' : '#C4D4EF';
 
             h += `<div style="display:flex;height:${ROW_H}px;margin-bottom:1px;align-items:stretch;">`;
             // Name label
@@ -3911,7 +3912,7 @@
                 if (isWe) {
                   h += `<div style="position:absolute;top:0;left:${x}px;width:${DAY_W}px;height:100%;background:#EDEAE4;"></div>`;
                 } else if (isVac) {
-                  h += `<div style="position:absolute;top:2px;left:${x+0.5}px;width:${Math.max(DAY_W-1,1)}px;height:${ROW_H-4}px;background:${row.color};border-radius:2px;opacity:0.85;"></div>`;
+                  h += `<div style="position:absolute;top:2px;left:${x+0.5}px;width:${Math.max(DAY_W-1,1)}px;height:${ROW_H-4}px;background:${row.color};border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.22);"></div>`;
                 } else if (isHol) {
                   h += `<div style="position:absolute;top:0;left:${x}px;width:${DAY_W}px;height:100%;background:#E2D8C8;"></div>`;
                 }
@@ -3975,7 +3976,9 @@
           html += `<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;border-radius:2px;background:${bg};display:inline-block;"></span>${TYPE_LABELS[type]}</span>`;
         }
         if (selectedZones.length) {
-          html += `<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;background:#B45309;display:inline-block;border-radius:2px;opacity:0.85;"></span>Vac. scolaires</span>`;
+          selectedZones.forEach(z => {
+            html += `<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;background:${ZONE_COLORS[z] || '#888'};box-shadow:inset 0 0 0 1px rgba(0,0,0,0.22);display:inline-block;border-radius:2px;"></span>Vac. zone ${z}</span>`;
+          });
         }
         html += `<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;background:#E2D8C8;display:inline-block;border-radius:2px;"></span>Jour férié</span>`;
         html += `<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:11px;height:11px;background:#EDEAE4;display:inline-block;border-radius:2px;"></span>Week-end</span>`;
