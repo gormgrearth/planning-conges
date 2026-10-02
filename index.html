@@ -464,11 +464,23 @@
       .config-item input[type=number]:focus { outline: 2px solid var(--accent-mid); border-color: var(--accent); }
 
       /* ── Counters ── */
+      .counters-stack { display: flex; flex-direction: column; gap: 12px; }
+      .counter-group { display: flex; flex-direction: column; gap: 6px; }
+      .counter-group-title {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 9.5px; font-weight: 600; letter-spacing: 0.07em;
+        text-transform: uppercase; color: var(--text-muted);
+      }
+      .counter-group-title::before {
+        content: ''; width: 6px; height: 6px; border-radius: 50%;
+        background: var(--grp-color, var(--text-muted)); flex-shrink: 0;
+      }
       .counters-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: flex;
+        flex-wrap: wrap;
         gap: 6px;
       }
+      .counters-grid > .counter { flex: 1 1 calc(50% - 3px); min-width: 0; }
       .counter {
         background: var(--bg);
         border: 1px solid var(--border-soft);
@@ -1719,42 +1731,70 @@
         <!-- Counters -->
         <div>
           <div class="section-label">Soldes</div>
-          <div class="counters-grid">
-            <div class="counter">
-              <div class="counter-value" id="count-cp2526">25</div>
-              <div class="counter-label" id="lbl-count-cp2526">CP en cours restants</div>
+          <div class="counters-stack">
+            <!-- CP en cours -->
+            <div class="counter-group" id="grp-cp" style="--grp-color:var(--cp-curr);">
+              <div class="counter-group-title">CP en cours</div>
+              <div class="counters-grid">
+                <div class="counter">
+                  <div class="counter-value" id="count-cp2526">25</div>
+                  <div class="counter-label" id="lbl-count-cp2526">CP en cours restants</div>
+                </div>
+                <div class="counter">
+                  <div class="counter-value" id="count-cp2526-used">0</div>
+                  <div class="counter-label" id="lbl-count-cp2526-used">CP en cours posés (j+½j)</div>
+                </div>
+                <div class="counter">
+                  <div class="counter-value" id="count-cp2526-imp">0</div>
+                  <div class="counter-label" id="lbl-count-cp2526-imp">CP imposés placés</div>
+                </div>
+              </div>
             </div>
-            <div class="counter">
-              <div class="counter-value" id="count-cp2526-imp">0</div>
-              <div class="counter-label" id="lbl-count-cp2526-imp">CP imposés placés</div>
+            <!-- CP précédents -->
+            <div class="counter-group" id="grp-cp2" style="--grp-color:var(--cp-prev);">
+              <div class="counter-group-title">CP précédents</div>
+              <div class="counters-grid">
+                <div class="counter">
+                  <div class="counter-value" id="count-cp2425">0</div>
+                  <div class="counter-label" id="lbl-count-cp2425">CP préc. restants</div>
+                </div>
+                <div class="counter">
+                  <div class="counter-value" id="count-cp2425-used">0</div>
+                  <div class="counter-label" id="lbl-count-cp2425-used">CP préc. posés (j+½j)</div>
+                </div>
+              </div>
             </div>
-            <div class="counter">
-              <div class="counter-value" id="count-cp2425">0</div>
-              <div class="counter-label" id="lbl-count-cp2425">CP préc. restants</div>
+            <!-- RTT & JRSUP -->
+            <div class="counter-group" id="grp-rtt" style="--grp-color:var(--rtt);">
+              <div class="counter-group-title">RTT &amp; JRSUP</div>
+              <div class="counters-grid">
+                <div class="counter">
+                  <div class="counter-value" id="count-rtt">11</div>
+                  <div class="counter-label">RTT restants</div>
+                </div>
+                <div class="counter">
+                  <div class="counter-value" id="count-rtt-imp">0</div>
+                  <div class="counter-label">RTT imposés placés</div>
+                </div>
+                <div class="counter">
+                  <div class="counter-value" id="count-reserve">0</div>
+                  <div class="counter-label">JRSUP restants</div>
+                </div>
+              </div>
             </div>
-            <div class="counter">
-              <div class="counter-value" id="count-rtt">11</div>
-              <div class="counter-label">RTT restants</div>
-            </div>
-            <div class="counter">
-              <div class="counter-value" id="count-rtt-imp">0</div>
-              <div class="counter-label">RTT imposés placés</div>
-            </div>
-            <div class="counter">
-              <div class="counter-value" id="count-reserve">0</div>
-              <div class="counter-label">JRSUP restants</div>
-            </div>
-            <div class="counter" style="border-top:2px solid var(--cp-curr);opacity:0.85;">
-              <div class="counter-value" id="count-cp2526-used" style="color:var(--cp-curr);">0</div>
-              <div class="counter-label" id="lbl-count-cp2526-used">CP en cours posés (j+½j)</div>
-            </div>
-            <div class="counter" style="border-top:2px solid var(--cp-prev);opacity:0.85;">
-              <div class="counter-value" id="count-cp2425-used" style="color:var(--cp-prev);">0</div>
-              <div class="counter-label" id="lbl-count-cp2425-used">CP préc. posés (j+½j)</div>
-            </div>
-            <div class="counter" style="border-top:2px solid var(--css-stripe-a);">
-              <div class="counter-value" id="count-css" style="color:var(--css-text);">0</div>
-              <div class="counter-label">Congés sans solde</div>
+            <!-- Autres absences -->
+            <div class="counter-group" id="grp-other" style="--grp-color:var(--activ);display:none;">
+              <div class="counter-group-title">Autres absences</div>
+              <div class="counters-grid">
+                <div class="counter">
+                  <div class="counter-value" id="count-ap">0</div>
+                  <div class="counter-label">Activité partielle</div>
+                </div>
+                <div class="counter">
+                  <div class="counter-value" id="count-css">0</div>
+                  <div class="counter-label">Congés sans solde</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1922,11 +1962,12 @@
         <!-- Compteurs mobile -->
         <div id="mobile-counters" style="display:none;flex-direction:column;gap:6px;margin:8px 14px 0;">
           <!-- Utilisateur A -->
-          <div id="mob-row-a" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+          <div id="mob-row-a" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:6px;">
             <div class="counter"><div class="counter-value" id="mob-count-cp2526" style="color:var(--cp-curr)">0</div><div class="counter-label" id="mob-lbl-cp2526">CP</div></div>
             <div class="counter"><div class="counter-value" id="mob-count-cp2425" style="color:var(--cp-prev)">0</div><div class="counter-label" id="mob-lbl-cp2425">CP préc.</div></div>
             <div class="counter"><div class="counter-value" id="mob-count-rtt" style="color:var(--rtt)">0</div><div class="counter-label">RTT</div></div>
-            <div class="counter"><div class="counter-value" id="mob-count-css" style="color:var(--css-text)">0</div><div class="counter-label">S/solde</div></div>
+            <div class="counter"><div class="counter-value" id="mob-count-ap" style="color:var(--activ)">0</div><div class="counter-label">Act. part.</div></div>
+            <div class="counter"><div class="counter-value" id="mob-count-css" style="color:var(--css-stripe-a)">0</div><div class="counter-label">S/solde</div></div>
           </div>
           <!-- Utilisateur B (comparaison) -->
           <div id="mob-row-b" style="display:none;grid-template-columns:repeat(3,1fr);gap:6px;opacity:0.7;border-top:1px solid var(--border);padding-top:6px;">
@@ -2439,7 +2480,8 @@
         const rtt = cfg.rtt - countType('jrsup');
         const jrsup = (cfg.jrsup || 0) - countType('reserve');
         const hasJrsup = (cfg.jrsup || 0) > 0;
-        return { cp, cp2, rtt, jrsup, hasJrsup, cpTot, cp2Tot: cfg.cp2425 || 0, rttTot: cfg.rtt || 0, jrTot: cfg.jrsup || 0, showCp: cpTot > 0, showCp2: (cfg.cp2425 || 0) > 0, showRtt: (cfg.rtt || 0) > 0, color: avatarColor(u), initials: userInitials(u.name), name: u.name };
+        const ap = countType('activ-partielle'), css = countType('css');
+        return { cp, cp2, rtt, jrsup, hasJrsup, ap, css, cpTot, cp2Tot: cfg.cp2425 || 0, rttTot: cfg.rtt || 0, jrTot: cfg.jrsup || 0, showCp: cpTot > 0, showCp2: (cfg.cp2425 || 0) > 0, showRtt: (cfg.rtt || 0) > 0, color: avatarColor(u), initials: userInitials(u.name), name: u.name };
       }
 
       // ── Met à jour tout : header (barre utilisateurs + soldes) + mini sidebar ─
@@ -2476,7 +2518,9 @@
             (s.showCp  ? _soldeChip('CP', s.cp, 'var(--cp-curr)', s.cpTot) : '') +
             (s.showCp2 ? _soldeChip('CP préc.', s.cp2, 'var(--cp-prev)', s.cp2Tot) : '') +
             (s.showRtt ? _soldeChip('RTT', s.rtt, 'var(--rtt)', s.rttTot) : '') +
-            (s.hasJrsup ? _soldeChip('JRSUP', s.jrsup, 'var(--reserve)', s.jrTot) : '');
+            (s.hasJrsup ? _soldeChip('JRSUP', s.jrsup, 'var(--reserve)', s.jrTot) : '') +
+            (s.ap  > 0 ? _soldeChip('Act. part.', s.ap, 'var(--activ)') : '') +
+            (s.css > 0 ? _soldeChip('S/solde', s.css, 'var(--css-stripe-a)') : '');
         }
 
         _fillHeaderRow('user', sA);
@@ -2937,14 +2981,15 @@
         const cpTotal = (cfg.cp2526 || 0) + (cfg.anciennete || 0);
         const setCount = (id, rest, tot) => { const el = document.getElementById(id); if (el) el.innerHTML = fmt(rest) + '<span class="counter-total"> / ' + fmt(tot) + '</span>'; };
         setCount('count-cp2526', cpTotal - total2526Used, cpTotal);
-        document.getElementById('count-cp2526-imp').textContent = fmt(imp2526)+' / '+cfg.cp2526imp;
+        setCount('count-cp2526-imp', imp2526, cfg.cp2526imp||0);
         setCount('count-cp2425', cfg.cp2425 - total2425Used, cfg.cp2425);
         setCount('count-rtt', cfg.rtt - placedRtt, cfg.rtt);
-        document.getElementById('count-rtt-imp').textContent    = impRtt+' / '+cfg.rttimp;
+        setCount('count-rtt-imp', impRtt, cfg.rttimp||0);
         setCount('count-reserve', (cfg.jrsup||0) - countByType('reserve'), cfg.jrsup||0);
         if(document.getElementById('count-cp2526-used')) document.getElementById('count-cp2526-used').textContent = fmt(total2526Used);
         if(document.getElementById('count-cp2425-used')) document.getElementById('count-cp2425-used').textContent = fmt(total2425Used);
         if(document.getElementById('count-css')) document.getElementById('count-css').textContent = placedCss;
+        if(document.getElementById('count-ap'))  document.getElementById('count-ap').textContent  = countByType('activ-partielle');
 
         // Print mirror
         if(document.getElementById('p-count-cp2526')) document.getElementById('p-count-cp2526').textContent = fmt(cpTotal-total2526Used)+' / '+cpTotal;
@@ -2961,6 +3006,11 @@
         const okCp2  = (c.cp2425 || 0) > 0;
         const okRtt  = (c.rtt    || 0) > 0;
         const okJr   = (c.jrsup  || 0) > 0;
+        const okCpImp  = okCp  && (c.cp2526imp || 0) > 0;
+        const okRttImp = okRtt && (c.rttimp    || 0) > 0;
+        const nAp  = countByType('activ-partielle');
+        const nCss = countByType('css');
+        const okAp = nAp > 0, okCss = nCss > 0;
 
         const tools = {
           'cp2526': okCp, 'cp2526-half': okCp,
@@ -2974,11 +3024,13 @@
         });
 
         const counters = {
-          'count-cp2526': okCp, 'count-cp2526-imp': okCp, 'count-cp2526-used': okCp,
+          'count-cp2526': okCp, 'count-cp2526-imp': okCpImp, 'count-cp2526-used': okCp,
           'count-cp2425': okCp2, 'count-cp2425-used': okCp2,
-          'count-rtt': okRtt, 'count-rtt-imp': okRtt,
+          'count-rtt': okRtt, 'count-rtt-imp': okRttImp,
           'count-reserve': okJr,
-          'mob-count-cp2526': okCp, 'mob-count-cp2425': okCp2, 'mob-count-rtt': okRtt
+          'count-ap': okAp, 'count-css': okCss,
+          'mob-count-cp2526': okCp, 'mob-count-cp2425': okCp2, 'mob-count-rtt': okRtt,
+          'mob-count-ap': okAp, 'mob-count-css': okCss
         };
         Object.entries(counters).forEach(([id, show]) => {
           const el = document.getElementById(id);
@@ -2986,12 +3038,23 @@
           if (box) box.style.display = show ? '' : 'none';
         });
 
+        // Groupes : masqués si aucun compteur visible
+        const groups = {
+          'grp-cp': okCp, 'grp-cp2': okCp2,
+          'grp-rtt': okRtt || okJr, 'grp-other': okAp || okCss
+        };
+        Object.entries(groups).forEach(([id, show]) => {
+          const g = document.getElementById(id);
+          if (g) g.style.display = show ? '' : 'none';
+        });
+
         // Couleurs des soldes = couleurs des pastilles d'outils
         const colorOf = {
-          'count-cp2526': 'var(--cp-curr)', 'count-cp2526-imp': 'var(--cp-curr)',
-          'count-cp2425': 'var(--cp-prev)',
+          'count-cp2526': 'var(--cp-curr)', 'count-cp2526-imp': 'var(--cp-curr)', 'count-cp2526-used': 'var(--cp-curr)',
+          'count-cp2425': 'var(--cp-prev)', 'count-cp2425-used': 'var(--cp-prev)',
           'count-rtt': 'var(--rtt)', 'count-rtt-imp': 'var(--rtt)',
-          'count-reserve': 'var(--reserve)'
+          'count-reserve': 'var(--reserve)',
+          'count-ap': 'var(--activ)', 'count-css': 'var(--css-stripe-a)'
         };
         Object.entries(colorOf).forEach(([id, col]) => {
           const el = document.getElementById(id);
@@ -4008,7 +4071,7 @@
       }
 
       function syncMobileCounters() {
-        const ids = ['cp2526','cp2425','rtt','css'];
+        const ids = ['cp2526','cp2425','rtt','ap','css'];
         ids.forEach(id => {
           const src = document.getElementById('count-' + id);
           const dst = document.getElementById('mob-count-' + id);
