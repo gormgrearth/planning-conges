@@ -684,6 +684,8 @@
       .day.jrsup         { background: var(--rtt)      !important; color: white; }
       .day.activ-partielle { background: var(--activ)  !important; color: white; }
       .day.reserve       { background: var(--reserve)  !important; color: white; }
+      .day.at            { background: var(--at)       !important; color: white; }
+      .day.special       { background: var(--spec)     !important; color: white; }
       .day.ferie-fixed   { background: var(--ferie-bg) !important; color: var(--ferie-color); cursor: default; font-size: 10px; }
       .day.ferie-fixed.jrsup { background: var(--rtt)  !important; color: white; cursor: pointer; }
       /* Demi-CP : demi-disque GAUCHE (moitié gauche colorée, moitié droite = fond) */
@@ -1054,7 +1056,7 @@
       }
       body.mobile-mode .sidebar { display: none !important; }
       body.mobile-mode .main {
-        padding: 0 0 90px;
+        padding: 0 0 132px;
         min-height: 100vh;
       }
       body.mobile-mode .main-header {
@@ -1372,7 +1374,7 @@
       }
 
       /* Boutons creux : vacances scolaires et jours fériés non posés */
-      .day.vacances-scol:not(.cp2526):not(.cp2425):not(.jrsup):not(.reserve):not(.activ-partielle):not(.css):not(.cp2526-half):not(.cp2425-half):not(.compare-split),
+      .day.vacances-scol:not(.cp2526):not(.cp2425):not(.jrsup):not(.reserve):not(.activ-partielle):not(.css):not(.cp2526-half):not(.cp2425-half):not(.at):not(.special):not(.compare-split),
       .day.ferie-fixed:not(.jrsup):not(.compare-split) {
         box-shadow:
           inset 2px 2px 4px var(--hollow-dark),
@@ -1400,6 +1402,104 @@
       body.mobile-mode .counter-total { font-size: 10px; }
       .days { gap: 5px 2px; }
       .day { width: 86%; justify-self: center; align-self: start; }
+
+      /* ══════════════════════════════════════════
+         AT + ABSENCE SPÉCIFIQUE
+      ══════════════════════════════════════════ */
+      :root { --at: #2E74C9; --spec: #C2418B; }
+      :root[data-theme="dark"] { --at: #5B9BEA; --spec: #DB6AAE; }
+      .dot-at { background: var(--at); }
+      .dot-special { background: var(--spec); }
+      #label-special { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+      .day.at:not(.compare-split),
+      .day.special:not(.compare-split) {
+        background-image:
+          radial-gradient(circle at 32% 28%, var(--sphere-light) 0%, rgba(255,255,255,0) 52%),
+          radial-gradient(circle at 70% 78%, var(--sphere-dark) 0%, rgba(0,0,0,0) 62%) !important;
+        box-shadow:
+          inset -2px -3px 5px var(--sphere-dark),
+          inset 1px 1px 3px rgba(255,255,255,0.35),
+          0 2px 4px var(--sphere-drop);
+        text-shadow: 0 1px 1px rgba(0,0,0,0.35);
+      }
+
+      /* Fenêtre de choix du titre */
+      .spec-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10001;
+        display: flex; align-items: center; justify-content: center; padding: 16px;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .spec-card {
+        background: var(--surface); color: var(--text-primary);
+        border-radius: 14px; box-shadow: var(--shadow-md);
+        width: 400px; max-width: 100%; max-height: 88vh; overflow-y: auto;
+        padding: 24px 22px 18px;
+      }
+      .spec-title { font-family: 'DM Serif Display', serif; font-size: 19px; margin-bottom: 4px; }
+      .spec-sub { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
+      .spec-field-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+      .spec-saved { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; max-height: 200px; overflow-y: auto; }
+      .spec-row { display: flex; align-items: center; gap: 6px; }
+      .spec-pick {
+        flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px;
+        padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+        background: var(--bg); color: var(--text-primary);
+        font: 500 13px 'DM Sans', sans-serif; text-align: left; cursor: pointer;
+      }
+      .spec-pick span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .spec-pick:hover, .spec-pick.active { border-color: var(--accent-mid); background: var(--accent-light); }
+      .spec-del {
+        width: 30px; height: 30px; flex-shrink: 0; border: none; background: transparent;
+        color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 13px;
+      }
+      .spec-del:hover { background: #FEE2E2; color: #C0392B; }
+      .spec-new { display: flex; gap: 8px; }
+      .spec-new input {
+        flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+        background: var(--bg); color: var(--text-primary); font: 16px 'DM Sans', sans-serif; outline: none;
+      }
+      .spec-new input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-light); }
+      .spec-btn-primary {
+        padding: 10px 16px; border: none; border-radius: 8px; background: var(--accent); color: #fff;
+        font: 600 13px 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap;
+      }
+      .spec-btn-primary:hover { opacity: 0.88; }
+      .spec-actions { display: flex; justify-content: flex-end; margin-top: 16px; }
+      .spec-btn {
+        padding: 9px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
+        color: var(--text-secondary); font: 500 13px 'DM Sans', sans-serif; cursor: pointer;
+      }
+      .spec-btn:hover { background: var(--accent-light); }
+
+      /* Mode smartphone : nom de l'outil sélectionné (au-dessus des pastilles, centré) */
+      #mobile-tool-name {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        min-height: 20px; margin: 0 0 7px; padding: 0 8px;
+        font-size: 13px; font-weight: 600; color: var(--text-primary);
+        text-align: center; -webkit-tap-highlight-color: transparent;
+      }
+      #mobile-tool-name .tool-dot { width: 12px; height: 12px; flex-shrink: 0; }
+      #mobile-tool-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80vw; }
+      #mobile-tool-name.editable { cursor: pointer; }
+      #mobile-tool-name.editable::after { content: '✎'; font-size: 12px; color: var(--text-muted); }
+
+      /* Rangée d'outils : centrée si elle tient, défilable depuis le début sinon */
+      #mobile-tools-row { justify-content: flex-start; }
+      #mobile-tools-inner { display: flex; gap: 6px; margin: 0 auto; }
+
+      /* Mode smartphone : passage d'une année à l'autre en faisant défiler */
+      .year-sentinel { display: none; }
+      body.mobile-mode .year-sentinel {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+        flex: 0 0 calc(100vw - 28px); width: calc(100vw - 28px); margin: 0 14px;
+        scroll-snap-align: center; border: 2px dashed var(--border); border-radius: 12px;
+        color: var(--text-muted); min-height: 280px; user-select: none;
+      }
+      .year-sentinel .ys-arrow { font-size: 28px; line-height: 1; }
+      .year-sentinel .ys-year { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--text-secondary); }
+      .year-sentinel .ys-hint { font-size: 12px; }
+      @media print { .year-sentinel { display: none !important; } }
     </style>
   </head>
   <body>
@@ -1545,6 +1645,12 @@
           </button>
           <button class="mini-tool-btn" data-tool="css" id="mini-btn-css" onclick="selectTool('css')" title="Congé sans solde">
             <div class="mini-dot dot-css" style="border-radius:50%;"></div>
+          </button>
+          <button class="mini-tool-btn" data-tool="at" id="mini-btn-at" onclick="selectTool('at')" title="Arrêt de travail (AT)">
+            <div class="mini-dot" style="background:var(--at);"></div>
+          </button>
+          <button class="mini-tool-btn" data-tool="special" id="mini-btn-special" onclick="selectTool('special')" title="Absence spécifique (titre libre)">
+            <div class="mini-dot" style="background:var(--spec);"></div>
           </button>
           <button class="mini-tool-btn" data-tool="eraser" id="mini-btn-eraser" onclick="selectTool('eraser')" title="Effacer" style="background:var(--bg);">
             <div class="mini-dot" style="background:var(--text-muted);display:flex;align-items:center;justify-content:center;color:white;font-size:9px;font-weight:700;">✕</div>
@@ -1704,6 +1810,14 @@
               <span class="tool-dot dot-css"></span>
               Congé sans solde
             </button>
+            <button class="tool-btn" data-tool="at">
+              <span class="tool-dot dot-at"></span>
+              Arrêt de travail (AT)
+            </button>
+            <button class="tool-btn" data-tool="special" id="btn-special" title="Absence spécifique (titre libre)">
+              <span class="tool-dot dot-special"></span>
+              <span id="label-special">Absence spécifique…</span>
+            </button>
             <button class="tool-btn" data-tool="eraser">
               <span class="tool-dot dot-eraser"></span>
               Effacer
@@ -1800,6 +1914,14 @@
                   <div class="counter-value" id="count-css">0</div>
                   <div class="counter-label">Congés sans solde</div>
                 </div>
+                <div class="counter">
+                  <div class="counter-value" id="count-at">0</div>
+                  <div class="counter-label">Arrêts de travail</div>
+                </div>
+                <div class="counter">
+                  <div class="counter-value" id="count-special">0</div>
+                  <div class="counter-label">Congés spécifiques</div>
+                </div>
               </div>
             </div>
           </div>
@@ -1817,6 +1939,8 @@
             <div class="legend-item"><div style="width:14px;height:14px;border-radius:50%;background:linear-gradient(to right,var(--cp-curr) 50%,var(--border) 50%);flex-shrink:0;"></div> ½ CP en cours</div>
             <div class="legend-item"><div style="width:14px;height:14px;border-radius:50%;background:linear-gradient(to right,var(--cp-prev) 50%,var(--border) 50%);flex-shrink:0;"></div> ½ CP préc.</div>
             <div class="legend-item"><div class="dot-css" style="width:14px;height:14px;border-radius:50%;flex-shrink:0;"></div> Congé sans solde</div>
+            <div class="legend-item"><div style="width:14px;height:14px;border-radius:50%;background:var(--at);flex-shrink:0;"></div> Arrêt de travail (AT)</div>
+            <div class="legend-item"><div style="width:14px;height:14px;border-radius:50%;background:var(--spec);flex-shrink:0;"></div> Absence spécifique</div>
           </div>
         </div>
 
@@ -1996,6 +2120,8 @@
           <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#0B7285;display:inline-block;"></span>Act. Partielle</span>
           <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#5D7A2E;display:inline-block;"></span>JRSUP</span>
           <span style="display:inline-flex;align-items:center;gap:4px;"><span class="dot-css" style="width:10px;height:10px;border-radius:50%;display:inline-block;"></span>Sans solde</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#2E74C9;display:inline-block;"></span>AT</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#C2418B;display:inline-block;"></span>Spécifique</span>
           <span style="display:inline-flex;align-items:center;gap:4px;"><span class="dot-ferie-print"></span>Férié</span>
           <span style="display:inline-flex;align-items:center;gap:4px;"><span class="dot-vacances-print"></span>Vac. scolaires</span>
           <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid #1A7A4A;display:inline-block;"></span>Validé</span>
@@ -2233,6 +2359,10 @@
       let currentBgOpacity    = 30;
       let currentMonthOpacity = 88;
       let yearData = {};
+      let customLabels = [];          // titres personnalisés déjà utilisés (par utilisateur)
+      let currentSpecialLabel = '';   // titre appliqué par l'outil « absence spécifique »
+      let _yearSentinelObserver = null;
+      let _gridTouching = false;
 
       // ── Multi-user state ──
       const USERS_KEY = 'congesPlanning_users_v1';
@@ -2340,6 +2470,8 @@
         const d = u.data || {};
         yearData = sanitizeYearData(d.yearData);
         currentZone = d.currentZone || 'B';
+        customLabels = Array.isArray(d.customLabels) ? d.customLabels.filter(x => typeof x === 'string') : [];
+        if (!Array.isArray(d.customLabels)) collectLabelsFromData();
         document.querySelectorAll('.zone-btn').forEach(b => b.classList.toggle('active', b.dataset.zone === currentZone));
         // BG
         currentBgUrl = d.bgUrl || '';
@@ -2365,7 +2497,7 @@
       async function saveCurrentUserData() {
         const u = currentUser();
         if (!u) return;
-        u.data = { yearData, currentZone, bgUrl: currentBgUrl, bgOpacity: currentBgOpacity, monthOpacity: currentMonthOpacity };
+        u.data = { yearData, currentZone, bgUrl: currentBgUrl, bgOpacity: currentBgOpacity, monthOpacity: currentMonthOpacity, customLabels };
         await saveAllUsers();
       }
 
@@ -2487,11 +2619,14 @@
         const jrsup = (cfg.jrsup || 0) - countType('reserve');
         const hasJrsup = (cfg.jrsup || 0) > 0;
         const ap = countType('activ-partielle'), css = countType('css');
+        const at = countType('at');
+        const specMap = {};
+        Object.values(cd).forEach(v => { if (v.type === 'special') { const l = v.label || 'Spécifique'; specMap[l] = (specMap[l] || 0) + 1; } });
         const countImp = (t) => Object.values(cd).filter(v => v.type === t && v.status === 'imposed').length;
         const impCp = countImp('cp2526') + countImp('cp2526-half') * 0.5, impCpTot = cfg.cp2526imp || 0;
         const impRtt = countImp('jrsup'), impRttTot = cfg.rttimp || 0;
         const impJr = countImp('reserve'), impJrTot = cfg.jrsupimp || 0;
-        return { cp, cp2, rtt, jrsup, hasJrsup, ap, css, impCp, impCpTot, impRtt, impRttTot, impJr, impJrTot, cpTot, cp2Tot: cfg.cp2425 || 0, rttTot: cfg.rtt || 0, jrTot: cfg.jrsup || 0, showCp: cpTot > 0, showCp2: (cfg.cp2425 || 0) > 0, showRtt: (cfg.rtt || 0) > 0, color: avatarColor(u), initials: userInitials(u.name), name: u.name };
+        return { cp, cp2, rtt, jrsup, hasJrsup, ap, css, at, specMap, impCp, impCpTot, impRtt, impRttTot, impJr, impJrTot, cpTot, cp2Tot: cfg.cp2425 || 0, rttTot: cfg.rtt || 0, jrTot: cfg.jrsup || 0, showCp: cpTot > 0, showCp2: (cfg.cp2425 || 0) > 0, showRtt: (cfg.rtt || 0) > 0, color: avatarColor(u), initials: userInitials(u.name), name: u.name };
       }
 
       // ── Met à jour tout : header (barre utilisateurs + soldes) + mini sidebar ─
@@ -2533,7 +2668,9 @@
             (s.hasJrsup ? _soldeChip('JRSUP', s.jrsup, 'var(--reserve)', s.jrTot) : '') +
             (s.hasJrsup && s.impJrTot > 0 ? _soldeChip('JRSUP imp.', s.impJr, 'var(--reserve)', s.impJrTot) : '') +
             (s.ap  > 0 ? _soldeChip('Act. part.', s.ap, 'var(--activ)') : '') +
-            (s.css > 0 ? _soldeChip('S/solde', s.css, 'var(--css-stripe-a)') : '');
+            (s.css > 0 ? _soldeChip('S/solde', s.css, 'var(--css-stripe-a)') : '') +
+            (s.at  > 0 ? _soldeChip('AT', s.at, 'var(--at)') : '') +
+            Object.entries(s.specMap || {}).map(([l, n]) => _soldeChip(escHtml(l), n, 'var(--spec)')).join('');
         }
 
         _fillHeaderRow('user', sA);
@@ -2638,6 +2775,7 @@
         // Print counters labels
         if (document.getElementById('p-lbl-cp2526')) document.getElementById('p-lbl-cp2526').textContent = `CP ${curr}/${String(next).slice(2)} restants`;
         if (document.getElementById('p-lbl-cp2425')) document.getElementById('p-lbl-cp2425').textContent = `CP ${prev}/${String(curr).slice(2)} restants`;
+        updateMobileToolName();
       }
 
       function getYearData(y) {
@@ -2758,11 +2896,44 @@
         const num = dayDiv.dataset.dayNum || dayDiv.textContent.trim();
         dayDiv.dataset.dayNum = num;
         dayDiv.innerHTML = buildDayHTML(num, type, status);
+        if (dayDiv.dataset.date && !dayDiv.classList.contains('ferie-fixed')) dayDiv.title = computeDayTitle(dayDiv.dataset.date);
+      }
+
+      function computeDayTitle(dateStr) {
+        const abs = get_calendarData()[dateStr];
+        if (abs && abs.type === 'special') return abs.label || 'Absence spécifique';
+        const school = getSchoolHolidayDates(currentYear, currentZone)[dateStr];
+        return school ? 'Vacances scolaires – ' + school : '';
+      }
+
+      function absLabel(abs) {
+        if (!abs) return '—';
+        if (abs.type === 'special' && abs.label) return abs.label;
+        return TYPE_LABELS[abs.type] || abs.type;
+      }
+
+      function collectLabelsFromData() {
+        Object.values(yearData || {}).forEach(y => Object.values((y && y.calendarData) || {}).forEach(v => {
+          if (v && v.type === 'special' && v.label && !customLabels.includes(v.label)) customLabels.push(v.label);
+        }));
+      }
+
+      // Cartes « année précédente / suivante » aux deux bouts du défilement (mode smartphone)
+      function makeYearSentinel(dir) {
+        const el = document.createElement('div');
+        el.className = 'year-sentinel';
+        el.dataset.dir = String(dir);
+        const y = currentYear + dir;
+        el.innerHTML = dir < 0
+          ? `<span class="ys-arrow">‹</span><span class="ys-year">${y}</span><span class="ys-hint">Année précédente</span>`
+          : `<span class="ys-arrow">›</span><span class="ys-year">${y}</span><span class="ys-hint">Année suivante</span>`;
+        return el;
       }
 
       function createCalendar() {
         const grid = document.getElementById('calendar-grid');
         grid.innerHTML = '';
+        grid.appendChild(makeYearSentinel(-1));
         const holidays   = getHolidays(currentYear);
         const schoolDays = getSchoolHolidayDates(currentYear, currentZone);
         const calendarData = get_calendarData();
@@ -2887,6 +3058,7 @@
 
             dayDiv.dataset.dayNum = String(day);
             dayDiv.innerHTML = buildDayHTML(day, saved?.type||null, saved?.status||null);
+            if (saved && saved.type === 'special') dayDiv.title = saved.label || 'Absence spécifique';
             dayDiv.addEventListener('click', ()=>handleDayClick(dateStr,dayDiv));
             dayDiv.addEventListener('contextmenu',e=>{e.preventDefault(); if(!swapModeActive) cycleStatus(dateStr,dayDiv);});
             daysDiv.appendChild(dayDiv);
@@ -2895,6 +3067,7 @@
           monthDiv.appendChild(daysDiv);
           grid.appendChild(monthDiv);
         }
+        grid.appendChild(makeYearSentinel(1));
         updateCounterDisplay();
       }
 
@@ -2914,7 +3087,7 @@
           if (compareUserId) applyCompareOverlay();
           return;
         }
-        if(currentType===currentTool){
+        if(currentType===currentTool && (currentTool!=='special' || saved?.label===currentSpecialLabel)){
           delete calendarData[dateStr];
           const school=getSchoolHolidayDates(currentYear,currentZone)[dateStr];
           dayDiv.className='day'+(school?' vacances-scol':'');
@@ -2922,7 +3095,7 @@
           refreshDayHTML(dayDiv, null, null);
         } else {
           const status=saved?.status||null;
-          calendarData[dateStr]={type:currentTool,status};
+          calendarData[dateStr]=(currentTool==='special')?{type:currentTool,status,label:currentSpecialLabel}:{type:currentTool,status};
           const school=getSchoolHolidayDates(currentYear,currentZone)[dateStr];
           dayDiv.className='day '+currentTool+(school?' vacances-scol':'');
           if(status) dayDiv.classList.add('status-'+status);
@@ -3006,6 +3179,8 @@
         if(document.getElementById('count-cp2425-used')) document.getElementById('count-cp2425-used').textContent = fmt(total2425Used);
         if(document.getElementById('count-css')) document.getElementById('count-css').textContent = placedCss;
         if(document.getElementById('count-ap'))  document.getElementById('count-ap').textContent  = countByType('activ-partielle');
+        if(document.getElementById('count-at'))  document.getElementById('count-at').textContent  = countByType('at');
+        if(document.getElementById('count-special')) document.getElementById('count-special').textContent = countByType('special');
 
         // Print mirror
         if(document.getElementById('p-count-cp2526')) document.getElementById('p-count-cp2526').textContent = fmt(cpTotal-total2526Used)+' / '+cpTotal;
@@ -3028,6 +3203,7 @@
         const nAp  = countByType('activ-partielle');
         const nCss = countByType('css');
         const okAp = nAp > 0, okCss = nCss > 0;
+        const okAt = countByType('at') > 0, okSpec = countByType('special') > 0;
 
         const tools = {
           'cp2526': okCp, 'cp2526-half': okCp,
@@ -3045,7 +3221,7 @@
           'count-cp2425': okCp2, 'count-cp2425-used': okCp2,
           'count-rtt': okRtt, 'count-rtt-imp': okRttImp,
           'count-reserve': okJr, 'count-reserve-imp': okJrImp,
-          'count-ap': okAp, 'count-css': okCss,
+          'count-ap': okAp, 'count-css': okCss, 'count-at': okAt, 'count-special': okSpec,
           'mob-count-cp2526': okCp, 'mob-count-cp2425': okCp2, 'mob-count-rtt': okRtt,
           'mob-count-ap': okAp, 'mob-count-css': okCss
         };
@@ -3058,7 +3234,7 @@
         // Groupes : masqués si aucun compteur visible
         const groups = {
           'grp-cp': okCp, 'grp-cp2': okCp2,
-          'grp-rtt': okRtt || okJr, 'grp-other': okAp || okCss
+          'grp-rtt': okRtt || okJr, 'grp-other': okAp || okCss || okAt || okSpec
         };
         Object.entries(groups).forEach(([id, show]) => {
           const g = document.getElementById(id);
@@ -3071,7 +3247,7 @@
           'count-cp2425': 'var(--cp-prev)', 'count-cp2425-used': 'var(--cp-prev)',
           'count-rtt': 'var(--rtt)', 'count-rtt-imp': 'var(--rtt)',
           'count-reserve': 'var(--reserve)', 'count-reserve-imp': 'var(--reserve)',
-          'count-ap': 'var(--activ)', 'count-css': 'var(--css-stripe-a)'
+          'count-ap': 'var(--activ)', 'count-css': 'var(--css-stripe-a)', 'count-at': 'var(--at)', 'count-special': 'var(--spec)'
         };
         Object.entries(colorOf).forEach(([id, col]) => {
           const el = document.getElementById(id);
@@ -3178,6 +3354,8 @@
       function applyPayload(data){
         yearData=sanitizeYearData(data.yearData);
         currentZone=data.currentZone||'B';
+        customLabels = Array.isArray(data.customLabels) ? data.customLabels.filter(x => typeof x === 'string') : [];
+        if (!Array.isArray(data.customLabels)) collectLabelsFromData();
         document.querySelectorAll('.zone-btn').forEach(b=>b.classList.toggle('active',b.dataset.zone===currentZone));
         createCalendar(); updateYearLabels(currentYear); restoreBgState(data);
         refreshMonthTints();
@@ -3206,7 +3384,7 @@
         closeSaveModal();
         const u = currentUser();
         // Single-user legacy format for portability
-        const payload = { yearData: u.data?.yearData || {}, currentZone: u.data?.currentZone || 'B', bgUrl: u.data?.bgUrl || '', bgOpacity: u.data?.bgOpacity ?? 30, monthOpacity: u.data?.monthOpacity ?? 88 };
+        const payload = { yearData: u.data?.yearData || {}, currentZone: u.data?.currentZone || 'B', bgUrl: u.data?.bgUrl || '', bgOpacity: u.data?.bgOpacity ?? 30, monthOpacity: u.data?.monthOpacity ?? 88, customLabels: u.data?.customLabels || [] };
         const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -3756,6 +3934,8 @@
         'activ-partielle':'#0B7285',
         'reserve':       '#5D7A2E',
         'css':           null, // handled specially below (hatched)
+        'at':            '#2E74C9',
+        'special':       '#C2418B',
       };
       const TYPE_LABELS = {
         'cp2526': 'CP',
@@ -3766,6 +3946,8 @@
         'activ-partielle': 'Act.P.',
         'reserve':'JRSUP',
         'css':    'Sans solde',
+        'at':     'AT',
+        'special':'Spécifique',
       };
 
       function buildGantt(selectedZones = [], usersData = null) {
@@ -3934,7 +4116,7 @@
                     const isHalf = type === 'cp2526-half' || type === 'cp2425-half';
                     bg = isHalf ? `linear-gradient(135deg,${col} 50%,#f0f0f0 50%)` : col;
                   }
-                  h += `<div style="position:absolute;top:2px;left:${x+0.5}px;width:${Math.max(DAY_W-1,1)}px;height:${ROW_H-4}px;background:${bg};border-radius:2px;"></div>`;
+                  h += `<div style="position:absolute;top:2px;left:${x+0.5}px;width:${Math.max(DAY_W-1,1)}px;height:${ROW_H-4}px;background:${bg};border-radius:2px;"${absence.type==='special' && absence.label ? ` title="${escHtml(absence.label)}"` : ''}></div>`;
                 }
               }
               di++;
@@ -4040,6 +4222,7 @@
 
       function updateMobileView() {
         if (!document.body.classList.contains('mobile-mode')) return;
+        updateMobileToolName();
         const monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
         if (document.getElementById('mob-year-display')) document.getElementById('mob-year-display').textContent = currentYear;
 
@@ -4070,6 +4253,20 @@
             });
           }, { root: grid, threshold: 0.5 });
           months.forEach(m => _mobileScrollObserver.observe(m));
+        }
+
+        // Cartes d'année aux extrémités : une fois en vue et le doigt relevé, on change d'année
+        if (_yearSentinelObserver) _yearSentinelObserver.disconnect();
+        const sentinels = grid ? Array.from(grid.querySelectorAll('.year-sentinel')) : [];
+        if (sentinels.length) {
+          _yearSentinelObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              const el = entry.target;
+              clearTimeout(el._yearTimer);
+              if (entry.isIntersecting && entry.intersectionRatio >= 0.6) scheduleYearSwitch(el);
+            });
+          }, { root: grid, threshold: [0, 0.6, 1] });
+          sentinels.forEach(sn => _yearSentinelObserver.observe(sn));
         }
 
         syncMobileCounters();
@@ -4120,6 +4317,183 @@
         _origSelectTool(tool);
         document.querySelectorAll('.mob-tool').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
       };
+
+      // ══════════════════════════════════════════
+      // AT, ABSENCE SPÉCIFIQUE, NOM DE L'OUTIL, DÉFILEMENT D'ANNÉE
+      // ══════════════════════════════════════════
+      const TOOL_DOT_CLASS = {
+        'cp2526': 'dot-cp2526', 'cp2526-half': 'dot-cp2526-half',
+        'cp2425': 'dot-cp2425', 'cp2425-half': 'dot-cp2425-half',
+        'jrsup': 'dot-jrsup', 'activ-partielle': 'dot-activ', 'reserve': 'dot-reserve',
+        'css': 'dot-css', 'at': 'dot-at', 'special': 'dot-special', 'eraser': 'dot-eraser'
+      };
+
+      function toolDisplayName(tool) {
+        const txt = id => (document.getElementById(id)?.textContent || '').trim();
+        switch (tool) {
+          case 'cp2526':          return txt('label-cp2526') || 'CP en cours';
+          case 'cp2526-half':     return txt('label-cp2526-half') || '½ CP en cours';
+          case 'cp2425':          return txt('label-cp2425') || 'CP précédent';
+          case 'cp2425-half':     return txt('label-cp2425-half') || '½ CP précédent';
+          case 'jrsup':           return 'RTT';
+          case 'activ-partielle': return 'Activité partielle';
+          case 'reserve':         return 'JRSUP';
+          case 'css':             return 'Congé sans solde';
+          case 'at':              return 'Arrêt de travail (AT)';
+          case 'special':         return currentSpecialLabel || 'Absence spécifique';
+          case 'eraser':          return 'Effacer';
+          default:                return tool;
+        }
+      }
+
+      function updateMobileToolName() {
+        const box = document.getElementById('mobile-tool-name');
+        if (!box) return;
+        const dot = document.getElementById('mobile-tool-name-dot');
+        const txt = document.getElementById('mobile-tool-name-text');
+        if (dot) dot.className = 'tool-dot ' + (TOOL_DOT_CLASS[currentTool] || '');
+        if (txt) txt.textContent = toolDisplayName(currentTool);
+        box.classList.toggle('editable', currentTool === 'special');
+        box.title = currentTool === 'special' ? 'Changer le titre' : '';
+      }
+
+      function refreshSpecialLabels() {
+        const full = currentSpecialLabel ? 'Spécifique : ' + currentSpecialLabel : 'Absence spécifique…';
+        const lbl = document.getElementById('label-special');
+        if (lbl) lbl.textContent = full;
+        document.querySelectorAll('[data-tool="special"]').forEach(b => { b.title = full; });
+      }
+
+      // Sélection d'outil : « spécifique » demande d'abord un titre
+      const _prevSelectTool = selectTool;
+      selectTool = function(tool) {
+        if (tool === 'special') { openSpecialPicker(); return; }
+        _prevSelectTool(tool);
+        updateMobileToolName();
+      };
+
+      function applySpecialLabel(label) {
+        const existing = customLabels.find(x => x.toLowerCase() === label.toLowerCase());
+        label = existing || label;
+        if (!existing) customLabels.push(label);
+        currentSpecialLabel = label;
+        refreshSpecialLabels();
+        _prevSelectTool('special');
+        updateMobileToolName();
+        closeSpecialPicker();
+        saveCurrentUserData();   // mémorise le titre dans la liste de l'utilisateur
+      }
+
+      function _specialKeyHandler(e) { if (e.key === 'Escape') closeSpecialPicker(); }
+
+      function closeSpecialPicker() {
+        document.getElementById('modal-special')?.remove();
+        document.removeEventListener('keydown', _specialKeyHandler);
+      }
+
+      function openSpecialPicker() {
+        closeSpecialPicker();
+        const overlay = document.createElement('div');
+        overlay.id = 'modal-special';
+        overlay.className = 'spec-overlay';
+        overlay.innerHTML = `
+          <div class="spec-card" role="dialog" aria-modal="true" aria-labelledby="spec-title">
+            <div class="spec-title" id="spec-title">Titre de la pastille</div>
+            <div class="spec-sub">Nommez cette absence (congé maternité, congé parent-enfant…). Chaque jour posé portera ce titre.</div>
+            <div id="spec-saved-wrap"></div>
+            <div class="spec-field-label">Nouveau titre</div>
+            <div class="spec-new">
+              <input id="spec-input" type="text" maxlength="40" placeholder="Ex. : Congé maternité" autocomplete="off">
+              <button id="spec-ok" class="spec-btn-primary" type="button">Utiliser</button>
+            </div>
+            <div class="spec-actions"><button id="spec-cancel" class="spec-btn" type="button">Annuler</button></div>
+          </div>`;
+        document.body.appendChild(overlay);
+
+        const wrap  = overlay.querySelector('#spec-saved-wrap');
+        const input = overlay.querySelector('#spec-input');
+
+        const renderSaved = () => {
+          wrap.innerHTML = '';
+          if (!customLabels.length) return;
+          const lab = document.createElement('div');
+          lab.className = 'spec-field-label';
+          lab.textContent = 'Titres déjà utilisés';
+          const list = document.createElement('div');
+          list.className = 'spec-saved';
+          customLabels.forEach(l => {
+            const row  = document.createElement('div');
+            row.className = 'spec-row';
+            const pick = document.createElement('button');
+            pick.type = 'button';
+            pick.className = 'spec-pick' + (currentTool === 'special' && l === currentSpecialLabel ? ' active' : '');
+            const dot = document.createElement('span');
+            dot.className = 'tool-dot dot-special';
+            const t = document.createElement('span');
+            t.textContent = l;
+            pick.append(dot, t);
+            pick.addEventListener('click', () => applySpecialLabel(l));
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'spec-del';
+            del.title = 'Retirer ce titre de la liste';
+            del.textContent = '✕';
+            del.addEventListener('click', e => {
+              e.stopPropagation();
+              customLabels = customLabels.filter(x => x !== l);
+              saveCurrentUserData();
+              renderSaved();
+            });
+            row.append(pick, del);
+            list.appendChild(row);
+          });
+          wrap.append(lab, list);
+        };
+
+        const confirmNew = () => {
+          const v = input.value.trim().replace(/\s+/g, ' ');
+          if (!v) { input.focus(); return; }
+          applySpecialLabel(v);
+        };
+        overlay.querySelector('#spec-ok').addEventListener('click', confirmNew);
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); confirmNew(); } });
+        overlay.querySelector('#spec-cancel').addEventListener('click', closeSpecialPicker);
+        overlay.addEventListener('click', e => { if (e.target === overlay) closeSpecialPicker(); });
+        document.addEventListener('keydown', _specialKeyHandler);
+        renderSaved();
+        // Sur smartphone, ne pas ouvrir le clavier si une liste de titres est proposée
+        if (!customLabels.length) setTimeout(() => input.focus(), 50);
+      }
+
+      // Toucher le nom de l'outil « spécifique » permet de changer de titre
+      document.getElementById('mobile-tool-name')?.addEventListener('click', () => {
+        if (currentTool === 'special') openSpecialPicker();
+      });
+
+      // Défilement d'année (mode smartphone)
+      function goToAdjacentYear(dir) {
+        if (!document.body.classList.contains('mobile-mode')) return;
+        mobileCurrentMonth = dir > 0 ? 0 : 11;
+        changeYear(dir);
+      }
+      function scheduleYearSwitch(el) {
+        clearTimeout(el._yearTimer);
+        el._yearTimer = setTimeout(() => {
+          if (_gridTouching) { scheduleYearSwitch(el); return; }   // attendre que le doigt soit relevé
+          goToAdjacentYear(parseInt(el.dataset.dir, 10));
+        }, 220);
+      }
+      (function () {
+        const g = document.getElementById('calendar-grid');
+        if (!g) return;
+        const on = () => { _gridTouching = true; }, off = () => { _gridTouching = false; };
+        g.addEventListener('touchstart', on, { passive: true });
+        g.addEventListener('touchend', off, { passive: true });
+        g.addEventListener('touchcancel', off, { passive: true });
+      })();
+
+      refreshSpecialLabels();
+      updateMobileToolName();
 
       // Surcharge createCalendar pour re-appliquer vue mobile
       const _origCreateCalendar = createCalendar;
@@ -4433,8 +4807,8 @@
           dayDiv.innerHTML = `<div class="day-divider"></div>${rings}<span class="day-num">${dayNum}</span>`;
 
           // Tooltip
-          const lblA = absA ? (TYPE_LABELS[absA.type] || absA.type) : '—';
-          const lblB = absB ? (TYPE_LABELS[absB.type] || absB.type) : '—';
+          const lblA = absLabel(absA);
+          const lblB = absLabel(absB);
           const uA = currentUser()?.name || 'Moi';
           let uBName = '?';
           if (compareUserId && compareUserId.startsWith('shared:')) {
@@ -4467,7 +4841,7 @@
         dayDiv.innerHTML = buildDayHTML(dayNum, abs?.type||null, abs?.status||null);
         // Réinitialiser le tooltip (effacer l'ancien tooltip de comparaison)
         if (!dayDiv.classList.contains('ferie') && !dayDiv.classList.contains('vacances')) {
-          dayDiv.title = abs ? (TYPE_LABELS[abs.type] || abs.type) : '';
+          dayDiv.title = abs ? absLabel(abs) : '';
         }
       }
 
@@ -5125,8 +5499,10 @@
 
     <!-- ══ BOTTOM BAR SMARTPHONE ══ -->
     <div id="mobile-bottom-bar">
+      <!-- Nom de l'outil sélectionné -->
+      <div id="mobile-tool-name" role="status" aria-live="polite"><span class="tool-dot dot-cp2526" id="mobile-tool-name-dot"></span><span id="mobile-tool-name-text">CP</span></div>
       <!-- Outils de marquage -->
-      <div id="mobile-tools-row">
+      <div id="mobile-tools-row"><div id="mobile-tools-inner">
         <button class="mob-tool active" data-tool="cp2526" onclick="selectTool('cp2526')" title="CP en cours">
           <div class="mob-dot" style="background:var(--cp-curr);"></div>
         </button>
@@ -5151,9 +5527,16 @@
         <button class="mob-tool" data-tool="css" onclick="selectTool('css')" title="Sans solde">
           <div class="mob-dot dot-css"></div>
         </button>
+        <button class="mob-tool" data-tool="at" onclick="selectTool('at')" title="Arrêt de travail (AT)">
+          <div class="mob-dot" style="background:var(--at);"></div>
+        </button>
+        <button class="mob-tool" data-tool="special" onclick="selectTool('special')" title="Absence spécifique (titre libre)">
+          <div class="mob-dot" style="background:var(--spec);"></div>
+        </button>
         <button class="mob-tool" data-tool="eraser" onclick="selectTool('eraser')" title="Effacer">
           <div class="mob-dot" style="background:var(--text-muted);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700;">✕</div>
         </button>
+        </div>
       </div>
       <!-- Actions -->
       <div id="mobile-actions-row">
